@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SASA X MD OFC - Session Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    background: #0a0a0a;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(255,0,0,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(255,0,0,0.04) 0%, transparent 50%);
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  .glass-container {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(15, 15, 15, 0.85);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255, 0, 0, 0.15);
+    border-radius: 28px;
+    padding: 36px 28px 32px;
+    box-shadow:
+      0 8px 40px rgba(255, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg,
+      rgba(255,0,0,0.03) 60deg,
+      transparent 120deg,
+      rgba(255,0,0,0.02) 180deg,
+      transparent 240deg,
+      rgba(255,0,0,0.03) 300deg,
+      transparent 360deg);
+    animation: rotateGlow 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes rotateGlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .glass-container > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .logo-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 22px;
+    color: #000;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 20px rgba(255,0,0,0.3);
+  }
+
+  .header h1 {
+    font-family: 'Orbitron', monospace;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #ff1a1a, #ff4d4d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+  }
+
+  .header .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 14px;
+    padding: 4px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: 11px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: transparent;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, rgba(255,0,0,0.2), rgba(204,0,0,0.1));
+    color: #ff3333;
+    box-shadow: 0 2px 12px rgba(255,0,0,0.1);
+  }
+
+  .tab-btn:hover:not(.active) {
+    color: rgba(255,255,255,0.6);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Form Elements */
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .input-group input,
+  .input-group select {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,0,0,0.12);
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+
+  .input-group input:focus,
+  .input-group select:focus {
+    border-color: rgba(255,0,0,0.4);
+    box-shadow: 0 0 20px rgba(255,0,0,0.06);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .input-group input::placeholder {
+    color: rgba(255,255,255,0.15);
+  }
+
+  .input-group select option {
+    background: #111;
+    color: #fff;
+  }
+
+  .phone-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .phone-row .input-group {
+    flex: 1;
+  }
+
+  .phone-row .input-group:first-child {
+    flex: 0 0 110px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    color: #000;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255,0,0,0.3);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .btn-primary .btn-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Code Display */
+  .code-display {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,0,0,0.1);
+    border-radius: 14px;
+    text-align: center;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+  }
+
+  .code-display .code-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+  }
+
+  .code-display .code-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: #ff1a1a;
+    text-shadow: 0 0 20px rgba(255,0,0,0.3);
+  }
+
+  .code-display .code-status {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 6px;
+  }
+
+  .code-display .code-error {
+    color: #ff4444;
+    font-weight: 500;
+  }
+
+  .code-display .code-success {
+    color: #4caf50;
+    font-weight: 500;
+  }
+
+  .code-display .code-session {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    word-break: break-all;
+    max-width: 100%;
+    margin-top: 8px;
+    font-family: 'Rajdhani', monospace;
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Timer Bar */
+  .timer-container {
+    margin-top: 16px;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .timer-container.active {
+    opacity: 1;
+  }
+
+  .timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff0000, #ff4d4d);
+    border-radius: 4px;
+    transition: width 0.3s linear;
+  }
+
+  .timer-text {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 8px;
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+
+  /* QR Code Container */
+  .qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 260px;
+  }
+
+  .qr-container canvas,
+  .qr-container img {
+    border-radius: 12px;
+    background: #fff;
+    padding: 12px;
+    max-width: 220px;
+    image-rendering: pixelated;
+  }
+
+  .qr-placeholder {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed rgba(255,0,0,0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.15);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* Status indicators */
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .status-dot.idle { background: #555; animation: none; }
+  .status-dot.connecting { background: #ffaa00; }
+  .status-dot.connected { background: #4caf50; animation: none; }
+  .status-dot.error { background: #ff0000; animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Footer */
+  .footer {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 24px;
+    padding: 20px 0;
+    text-align: center;
+    border-top: 1px solid rgba(255,0,0,0.06);
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .footer .footer-brand {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #ff1a1a, #ff4d4d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .footer .footer-anim {
+    display: inline-block;
+    animation: footerPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes footerPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Connection Info */
+  .connection-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .glass-container {
+      padding: 24px 18px 24px;
+      border-radius: 20px;
+    }
+
+    .phone-row {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .phone-row .input-group:first-child {
+      flex: 1;
+    }
+
+    .header h1 {
+      font-size: 16px;
+    }
+
+    .code-display .code-value {
+      font-size: 24px;
+      letter-spacing: 4px;
+    }
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top-color: #ff3333;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Country code styling */
+  .country-select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.3)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+</style>
+</head>
+<body>
+
+<div class="glass-container" id="app">
+  <div class="header">
+    <div class="logo-icon">SX</div>
+    <h1>SASA X MD OFC</h1>
+    <div class="subtitle">Session Generator</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="pair">Pair Code</button>
+    <button class="tab-btn" data-tab="qr">QR Code</button>
+  </div>
+
+  <!-- PAIR CODE TAB -->
+  <div class="tab-content active" id="tab-pair">
+    <div class="phone-row">
+      <div class="input-group">
+        <label>Country</label>
+        <select class="country-select" id="countryCode">
+          <option value="93">AF +93</option>
+          <option value="355">AL +355</option>
+          <option value="213">DZ +<option value="213">DZ +213</option>
+          <option value="54">AR +54</option>
+          <option value="61">AU +61</option>
+          <option value="880">BD +880</option>
+          <option value="32">BE +32</option>
+          <option value="591">BO +591</option>
+          <option value="55">BR +55</option>
+          <option value="359">BG +359</option>
+          <option value="95">MM +95</option>
+          <option value="237">CM +237</option>
+          <option value="1">CA +1</option>
+          <option value="56">CL +56</option>
+          <option value="86">CN +86</option>
+          <option value="57">CO +57</option>
+          <option value="506">CR +506</option>
+          <option value="385">HR +385</option>
+          <option value="53">CU +53</option>
+          <option value="357">CY +357</option>
+          <option value="420">CZ +420</option>
+          <option value="45">DK +45</option>
+          <option value="593">EC +593</option>
+          <option value="20">EG +20</option>
+          <option value="503">SV +503</option>
+          <option value="372">EE +372</option>
+          <option value="251">ET +251</option>
+          <option value="358">FI +358</option>
+          <option value="33">FR +33</option>
+          <option value="995">GE +995</option>
+          <option value="49">DE +49</option>
+          <option value="233">GH +233</option>
+          <option value="30">GR +30</option>
+          <option value="502">GT +502</option>
+          <option value="852">HK +852</option>
+          <option value="36">HU +36</option>
+          <option value="91">IN +91</option>
+          <option value="62">ID +62</option>
+          <option value="98">IR +98</option>
+          <option value="964">IQ +964</option>
+          <option value="353">IE +353</option>
+          <option value="39">IT +39</option>
+          <option value="81">JP +81</option>
+          <option value="962">JO +962</option>
+          <option value="254">KE +254</option>
+          <option value="965">KW +965</option>
+          <option value="856">LA +856</option>
+          <option value="961">LB +961</option>
+          <option value="60">MY +60</option>
+          <option value="960">MV +960</option>
+          <option value="223">ML +223</option>
+          <option value="356">MT +356</option>
+          <option value="230">MU +230</option>
+          <option value="52">MX +52</option>
+          <option value="977">NP +977</option>
+          <option value="31">NL +31</option>
+          <option value="64">NZ +64</option>
+          <option value="234">NG +234</option>
+          <option value="47">NO +47</option>
+          <option value="968">OM +968</option>
+          <option value="92">PK +92</option>
+          <option value="507">PA +507</option>
+          <option value="595">PY +595</option>
+          <option value="51">PE +51</option>
+          <option value="63">PH +63</option>
+          <option value="48">PL +48</option>
+          <option value="351">PT +351</option>
+          <option value="974">QA +974</option>
+          <option value="40">RO +40</option>
+          <option value="7">RU +7</option>
+          <option value="250">RW +250</option>
+          <option value="966">SA +966</option>
+          <option value="65">SG +65</option>
+          <option value="421">SK +421</option>
+          <option value="386">SI +386</option>
+          <option value="27">ZA +27</option>
+          <option value="82">KR +82</option>
+          <option value="34">ES +34</option>
+          <option value="94" selected>LK +94</option>
+          <option value="249">SD +249</option>
+          <option value="46">SE +46</option>
+          <option value="41">CH +41</option>
+          <option value="963">SY +963</option>
+          <option value="886">TW +886</option>
+          <option value="255">TZ +255</option>
+          <option value="66">TH +66</option>
+          <option value="90">TR +90</option>
+          <option value="256">UG +256</option>
+          <option value="380">UA +380</option>
+          <option value="971">AE +971</option>
+          <option value="44">GB +44</option>
+          <option value="1">US +1</option>
+          <option value="598">UY +598</option>
+          <option value="58">VE +58</option>
+          <option value="84">VN +84</option>
+          <option value="967">YE +967</option>
+          <option value="260">ZM +260</option>
+          <option value="263">ZW +263</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Phone Number</label>
+        <input type="tel" id="phoneNumber" placeholder="XXXXXXXXX" autocomplete="tel">
+      </div>
+    </div>
+
+    <button class="btn-primary" id="generatePairBtn">
+      <span class="btn-shimmer"></span>
+      Generate Pair Code
+    </button>
+
+    <div class="code-display" id="pairResult">
+      <div class="code-label">Pairing Code</div>
+      <div class="code-value" id="pairCodeValue">---</div>
+      <div class="code-status" id="pairStatus">Enter number and generate</div>
+    </div>
+
+    <div class="timer-container" id="pairTimerContainer">
+      <div class="timer-bar" id="pairTimerBar"></div>
+    </div>
+    <div class="timer-text" id="pairTimerText"></div>
+  </div>
+
+  <!-- QR CODE TAB -->
+  <div class="tab-content" id="tab-qr">
+    <div class="qr-container" id="qrContainer">
+      <div class="qr-placeholder" id="qrPlaceholder">QR Code</div>
+      <div id="qrCanvasContainer" style="display:none;"></div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="btn-primary" id="generateQrBtn">
+        <span class="btn-shimmer"></span>
+        Generate QR Code
+      </button>
+    </div>
+
+    <div class="code-display" id="qrResult" style="margin-top:16px;">
+      <div class="code-label">QR Status</div>
+      <div class="code-status" id="qrStatus">Click generate to start</div>
+    </div>
+
+    <div class="timer-container" id="qrTimerContainer">
+      <div class="timer-bar" id="qrTimerBar"></div>
+    </div>
+    <div class="timer-text" id="qrTimerText"></div>
+  </div>
+
+  <div class="connection-info">
+    <span class="status-dot idle" id="statusDot"></span>
+    <span id="statusText">Ready</span>
+  </div>
+</div>
+
+<div class="footer">
+  <p class="footer-anim">Powered by</p>
+  <div class="footer-brand">SASA X MD OFC</div>
+  <p style="margin-top:6px; font-size:10px; letter-spacing:1px;">Session Generator v1.0</p>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // DOM refs
+  const tabs = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const countrySelect = document.getElementById('countryCode');
+  const phoneInput = document.getElementById('phoneNumber');
+  const generatePairBtn = document.getElementById('generatePairBtn');
+  const pairCodeValue = document.getElementById('pairCodeValue');
+  const pairStatus = document.getElementById('pairStatus');
+  const pairTimerContainer = document.getElementById('pairTimerContainer');
+  const pairTimerBar = document.getElementById('pairTimerBar');
+  const pairTimerText = document.getElementById('pairTimerText');
+
+  const generateQrBtn = document.getElementById('generateQrBtn');
+  const qrContainer = document.getElementById('qrContainer');
+  const qrPlaceholder = document.getElementById('qrPlaceholder');
+  const qrCanvasContainer = document.getElementById('qrCanvasContainer');
+  const qrStatus = document.getElementById('qrStatus');
+  const qrTimerContainer = document.getElementById('qrTimerContainer');
+  const qrTimerBar = document.getElementById('qrTimerBar');
+  const qrTimerText = document.getElementById('qrTimerText');
+
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+
+  let pairTimer = null;
+  let qrTimer = null;
+  let pairCountdown = null;
+  let qrCountdown = null;
+  let currentWs = null;
+
+  // Tabs
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function setStatus(state, text) {
+    statusDot.className = 'status-dot ' + state;
+    statusText.textContent = text;
+  }
+
+  // Timer helpers
+  function startCountdown(type, seconds, onTick, onEnd) {
+    let remaining = seconds;
+    const container = type === 'pair' ? pairTimerContainer : qrTimerContainer;
+    const bar = type === 'pair' ? pairTimerBar : qrTimerBar;
+    const text = type === 'pair' ? pairTimerText : qrTimerText;
+
+    container.classList.add('active');
+    bar.style.width = '100%';
+    text.textContent = 'Expires in ' + remaining + 's';
+
+    const interval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        container.classList.remove('active');
+        text.textContent = '';
+        if (onEnd) onEnd();
+        return;
+      }
+      const pct = (remaining / seconds) * 100;
+      bar.style.width = pct + '%';
+      text.textContent = 'Expires in ' + remaining + 's';
+      if (onTick) onTick(remaining);
+    }, 1000);
+
+    return interval;
+  }
+
+  function stopCountdown(type) {
+    const container = type === 'pair' ? pairTimerContainer : qrTimerContainer;
+    const text = type === 'pair' ? pairTimerText : qrTimerText;
+    container.classList.remove('active');
+    text.textContent = '';
+    if (type === 'pair' && pairCountdown) { clearInterval(pairCountdown); pairCountdown = null; }
+    if (type === 'qr' && qrCountdown) { clearInterval(qrCountdown); qrCountdown = null; }
+  }
+
+  // Connect WebSocket to backend
+  function connectWs() {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = protocol + '//' + location.host;
+    if (currentWs) {
+      try { currentWs.close(); } catch(e) {}
+    }
+    const ws = new WebSocket(wsUrl);
+    currentWs = ws;
+
+    ws.onopen = () => {
+      setStatus('connected', 'Connected to server');
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        handleServerMessage(data);
+      } catch(e) {
+        console.error('WS message parse error:', e);
+      }
+    };
+
+    ws.onclose = () => {
+      setStatus('idle', 'Disconnected');
+      if (currentWs === ws) {
+        setTimeout(connectWs, 3000);
+      }
+    };
+
+    ws.onerror = () => {
+      setStatus('error', 'Connection error');
+    };
+  }
+
+  function handleServerMessage(data) {
+    switch(data.type) {
+      case 'pair_code':
+        pairCodeValue.textContent = data.code;
+        pairStatus.textContent = 'Scan this code in WhatsApp > Linked Devices';
+        pairStatus.className = 'code-status';
+        setStatus('connecting', 'Pairing...');
+        stopCountdown('pair');
+        pairCountdown = startCountdown('pair', 20, null, () => {
+          pairCodeValue.textContent = '---';
+          pairStatus.textContent = 'Code expired. Generate again.';
+          pairStatus.className = 'code-status code-error';
+          setStatus('idle', 'Ready');
+          generatePairBtn.disabled = false;
+          generatePairBtn.innerHTML = '<span class="btn-shimmer"></span>Generate Pair Code';
+        });
+        generatePairBtn.disabled = false;
+        generatePairBtn.innerHTML = '<span class="btn-shimmer"></span>Generate Pair Code';
+        break;
+
+      case 'pair_error':
+        pairStatus.textContent = 'Error: ' + data.message;
+        pairStatus.className = 'code-status code-error';
+        generatePairBtn.disabled = false;
+        generatePairBtn.innerHTML = '<span class="btn-shimmer"></span>Generate Pair Code';
+        setStatus('idle', 'Ready');
+        break;
+
+      case 'qr_code':
+        qrPlaceholder.style.display = 'none';
+        qrCanvasContainer.style.display = 'block';
+        qrCanvasContainer.innerHTML = '<img src="' + data.qr + '" alt="QR Code" style="width:200px;height:200px;border-radius:12px;background:#fff;padding:12px;">';
+        qrStatus.textContent = 'Scan QR with WhatsApp';
+        qrStatus.className = 'code-status';
+        setStatus('connecting', 'Waiting for scan...');
+        stopCountdown('qr');
+        qrCountdown = startCountdown('qr', 20, null, () => {
+          qrStatus.textContent = 'QR expired. Generate again.';
+          qrStatus.className = 'code-status code-error';
+          setStatus('idle', 'Ready');
+          generateQrBtn.disabled = false;
+          generateQrBtn.innerHTML = '<span class="btn-shimmer"></span>Generate QR Code';
+          qrCanvasContainer.innerHTML = '';
+          qrPlaceholder.style.display = 'flex';
+        });
+        generateQrBtn.disabled = false;
+        generateQrBtn.innerHTML = '<span class="btn-shimmer"></span>Generate QR Code';
+        break;
+
+      case 'qr_error':
+        qrStatus.textContent = 'Error: ' + data.message;
+        qrStatus.className = 'code-status code-error';
+        generateQrBtn.disabled = false;
+        generateQrBtn.innerHTML = '<span class="btn-shimmer"></span>Generate QR Code';
+        setStatus('idle', 'Ready');
+        break;
+
+      case 'session_id':
+        pairStatus.textContent = 'Device linked successfully!';
+        pairStatus.className = 'code-status code-success';
+        setStatus('connected', 'Authenticated');
+        stopCountdown('pair');
+        generatePairBtn.disabled = false;
+        generatePairBtn.innerHTML = '<span class="btn-shimmer"></span>Generate Pair Code';
+        if (data.sessionId) {
+          const sessionDiv = document.createElement('div');
+          sessionDiv.className = 'code-session';
+          sessionDiv.textContent = 'Session ID: ' + data.sessionId;
+          document.querySelector('#pairResult').appendChild(sessionDiv);
+        }
+        break;
+
+      case 'qr_success':
+        qrStatus.textContent = 'Device linked successfully!';
+        qrStatus.className = 'code-status code-success';
+        setStatus('connected', 'Authenticated');
+        stopCountdown('qr');
+        generateQrBtn.disabled = false;
+        generateQrBtn.innerHTML = '<span class="btn-shimmer"></span>Generate QR Code';
+        if (data.sessionId) {
+          const sessionDiv = document.createElement('div');
+          sessionDiv.className = 'code-session';
+          sessionDiv.textContent = 'Session ID: ' + data.sessionId;
+          document.querySelector('#qrResult').appendChild(sessionDiv);
+        }
+        break;
+
+      case 'status':
+        if (data.state === 'authenticated') {
+          setStatus('connected', 'Authenticated');
+        }
+        break;
+    }
+  }
+
+  // Generate Pair Code
+  generatePairBtn.addEventListener('click', () => {
+    const cc = countrySelect.value;
+    const phone = phoneInput.value.trim();
+    if (!phone) {
+      pairStatus.textContent = 'Please enter a phone number';
+      pairStatus.className = 'code-status code-error';
+      return;
+    }
+    const fullNumber = cc + phone;
+
+    generatePairBtn.disabled = true;
+    generatePairBtn.innerHTML = '<span class="spinner"></span>Generating...';
+    pairCodeValue.textContent = '---';
+    pairStatus.textContent = 'Requesting pair code...';
+    pairStatus.className = 'code-status';
+    setStatus('connecting', 'Connecting...');
+
+    // Remove old session display
+    const oldSession = document.querySelector('#pairResult .code-session');
+    if (oldSession) oldSession.remove();
+
+    if (currentWs && currentWs.readyState === WebSocket.OPEN) {
+      currentWs.send(JSON.stringify({ action: 'pair', number: fullNumber }));
+    } else {
+      pairStatus.textContent = 'Not connected to server. Retrying...';
+      pairStatus.className = 'code-status code-error';
+      generatePairBtn.disabled = false;
+      generatePairBtn.innerHTML = '<span class="btn-shimmer"></span>Generate Pair Code';
+      setTimeout(connectWs, 1000);
+    }
+  });
+
+  // Generate QR
+  generateQrBtn.addEventListener('click', () => {
+    generateQrBtn.disabledgenerateQrBtn.disabled = true;
+    generateQrBtn.innerHTML = '<span class="spinner"></span>Generating...';
+    qrStatus.textContent = 'Generating QR code...';
+    qrStatus.className = 'code-status';
+    setStatus('connecting', 'Generating QR...');
+
+    const oldSession = document.querySelector('#qrResult .code-session');
+    if (oldSession) oldSession.remove();
+
+    if (currentWs && currentWs.readyState === WebSocket.OPEN) {
+      currentWs.send(JSON.stringify({ action: 'qr' }));
+    } else {
+      qrStatus.textContent = 'Not connected to server. Retrying...';
+      qrStatus.className = 'code-status code-error';
+      generateQrBtn.disabled = false;
+      generateQrBtn.innerHTML = '<span class="btn-shimmer"></span>Generate QR Code';
+      setTimeout(connectWs, 1000);
+    }
+  });
+
+  // Init
+  connectWs();
+})();
+</script>
+</body>
+</html>
